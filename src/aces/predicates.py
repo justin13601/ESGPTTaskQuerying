@@ -10,6 +10,8 @@ from .config import TaskExtractorConfig
 from .types import (
     ANY_EVENT_COLUMN,
     END_OF_RECORD_KEY,
+    EVENT_INDEX_COLUMN,
+    EVENT_INDEX_TYPE,
     PRED_CNT_TYPE,
     START_OF_RECORD_KEY,
 )
@@ -485,17 +487,17 @@ def get_predicates_df(cfg: TaskExtractorConfig, data_config: DictConfig) -> pl.D
         ...         "path": str(data_path), "standard": "direct", "ts_format": "%m/%d/%Y %H:%M"
         ...     })
         ...     get_predicates_df(config, data_config)
-        shape: (4, 7)
-        ┌────────────┬─────────────────────┬─────┬─────┬───────┬──────────────┬────────────┐
-        │ subject_id ┆ timestamp           ┆ adm ┆ dis ┆ death ┆ death_or_dis ┆ _ANY_EVENT │
-        │ ---        ┆ ---                 ┆ --- ┆ --- ┆ ---   ┆ ---          ┆ ---        │
-        │ i64        ┆ datetime[μs]        ┆ i64 ┆ i64 ┆ i64   ┆ i64          ┆ i64        │
-        ╞════════════╪═════════════════════╪═════╪═════╪═══════╪══════════════╪════════════╡
-        │ 1          ┆ 2021-01-01 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          │
-        │ 1          ┆ 2021-01-01 12:00:00 ┆ 0   ┆ 1   ┆ 0     ┆ 1            ┆ 1          │
-        │ 2          ┆ 2021-01-02 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          │
-        │ 2          ┆ 2021-01-02 12:00:00 ┆ 0   ┆ 0   ┆ 1     ┆ 1            ┆ 1          │
-        └────────────┴─────────────────────┴─────┴─────┴───────┴──────────────┴────────────┘
+        shape: (4, 8)
+        ┌────────────┬─────────────────────┬─────┬─────┬───────┬──────────────┬────────────┬──────────────┐
+        │ subject_id ┆ timestamp           ┆ adm ┆ dis ┆ death ┆ death_or_dis ┆ _ANY_EVENT ┆ _EVENT_INDEX │
+        │ ---        ┆ ---                 ┆ --- ┆ --- ┆ ---   ┆ ---          ┆ ---        ┆ ---          │
+        │ i64        ┆ datetime[μs]        ┆ i64 ┆ i64 ┆ i64   ┆ i64          ┆ i64        ┆ i64          │
+        ╞════════════╪═════════════════════╪═════╪═════╪═══════╪══════════════╪════════════╪══════════════╡
+        │ 1          ┆ 2021-01-01 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          ┆ 0            │
+        │ 1          ┆ 2021-01-01 12:00:00 ┆ 0   ┆ 1   ┆ 0     ┆ 1            ┆ 1          ┆ 1            │
+        │ 2          ┆ 2021-01-02 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          ┆ 0            │
+        │ 2          ┆ 2021-01-02 12:00:00 ┆ 0   ┆ 0   ┆ 1     ┆ 1            ┆ 1          ┆ 1            │
+        └────────────┴─────────────────────┴─────┴─────┴───────┴──────────────┴────────────┴──────────────┘
         >>> with tempfile.NamedTemporaryFile(mode="w", suffix=".parquet") as f:
         ...     data_path = Path(f.name)
         ...     (
@@ -505,17 +507,17 @@ def get_predicates_df(cfg: TaskExtractorConfig, data_config: DictConfig) -> pl.D
         ...     )
         ...     data_config = DictConfig({"path": str(data_path), "standard": "direct", "ts_format": None})
         ...     get_predicates_df(config, data_config)
-        shape: (4, 7)
-        ┌────────────┬─────────────────────┬─────┬─────┬───────┬──────────────┬────────────┐
-        │ subject_id ┆ timestamp           ┆ adm ┆ dis ┆ death ┆ death_or_dis ┆ _ANY_EVENT │
-        │ ---        ┆ ---                 ┆ --- ┆ --- ┆ ---   ┆ ---          ┆ ---        │
-        │ i64        ┆ datetime[μs]        ┆ i64 ┆ i64 ┆ i64   ┆ i64          ┆ i64        │
-        ╞════════════╪═════════════════════╪═════╪═════╪═══════╪══════════════╪════════════╡
-        │ 1          ┆ 2021-01-01 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          │
-        │ 1          ┆ 2021-01-01 12:00:00 ┆ 0   ┆ 1   ┆ 0     ┆ 1            ┆ 1          │
-        │ 2          ┆ 2021-01-02 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          │
-        │ 2          ┆ 2021-01-02 12:00:00 ┆ 0   ┆ 0   ┆ 1     ┆ 1            ┆ 1          │
-        └────────────┴─────────────────────┴─────┴─────┴───────┴──────────────┴────────────┘
+        shape: (4, 8)
+        ┌────────────┬─────────────────────┬─────┬─────┬───────┬──────────────┬────────────┬──────────────┐
+        │ subject_id ┆ timestamp           ┆ adm ┆ dis ┆ death ┆ death_or_dis ┆ _ANY_EVENT ┆ _EVENT_INDEX │
+        │ ---        ┆ ---                 ┆ --- ┆ --- ┆ ---   ┆ ---          ┆ ---        ┆ ---          │
+        │ i64        ┆ datetime[μs]        ┆ i64 ┆ i64 ┆ i64   ┆ i64          ┆ i64        ┆ i64          │
+        ╞════════════╪═════════════════════╪═════╪═════╪═══════╪══════════════╪════════════╪══════════════╡
+        │ 1          ┆ 2021-01-01 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          ┆ 0            │
+        │ 1          ┆ 2021-01-01 12:00:00 ┆ 0   ┆ 1   ┆ 0     ┆ 1            ┆ 1          ┆ 1            │
+        │ 2          ┆ 2021-01-02 00:00:00 ┆ 1   ┆ 0   ┆ 0     ┆ 0            ┆ 1          ┆ 0            │
+        │ 2          ┆ 2021-01-02 12:00:00 ┆ 0   ┆ 0   ┆ 1     ┆ 1            ┆ 1          ┆ 1            │
+        └────────────┴─────────────────────┴─────┴─────┴───────┴──────────────┴────────────┴──────────────┘
         >>> any_event_trigger = EventConfig("_ANY_EVENT")
         >>> adm_only_predicates = {"adm": PlainPredicateConfig("adm")}
         >>> st_end_windows = {
@@ -635,5 +637,11 @@ def get_predicates_df(cfg: TaskExtractorConfig, data_config: DictConfig) -> pl.D
         )
         logger.info(f"Added predicate column '{END_OF_RECORD_KEY}'.")
     predicate_cols += special_predicates
+
+    # create a column for event_id
+    data = data.with_columns(pl.lit(1).alias(EVENT_INDEX_COLUMN))
+    data = data.with_columns(
+        (pl.col(EVENT_INDEX_COLUMN).cum_sum().over("subject_id") - 1).cast(EVENT_INDEX_TYPE)
+    )
 
     return data

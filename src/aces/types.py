@@ -12,12 +12,19 @@ import polars as pl
 # The type used for final aggregate counts of predicates.
 PRED_CNT_TYPE = pl.Int64
 
+# The type used for event indexing
+EVENT_INDEX_TYPE = pl.Int64
+
 # The key used in the endpoint expression to indicate the window should be aggregated to the record start.
 START_OF_RECORD_KEY = "_RECORD_START"
 END_OF_RECORD_KEY = "_RECORD_END"
 
 # The key used to capture the count of events of any kind that occur in a window.
 ANY_EVENT_COLUMN = "_ANY_EVENT"
+
+# The key used for the event index
+EVENT_INDEX_COLUMN = "_EVENT_INDEX"
+LAST_EVENT_INDEX_COLUMN = "_LAST_EVENT_INDEX"
 
 
 @dataclasses.dataclass(order=True)

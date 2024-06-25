@@ -4,7 +4,12 @@ from datetime import timedelta
 
 import polars as pl
 
-from .types import PRED_CNT_TYPE, TemporalWindowBounds, ToEventWindowBounds
+from .types import (
+    EVENT_INDEX_COLUMN,
+    PRED_CNT_TYPE,
+    TemporalWindowBounds,
+    ToEventWindowBounds,
+)
 
 
 def aggregate_temporal_window(
@@ -79,7 +84,7 @@ def aggregate_temporal_window(
         ...     "is_C": [1, 1, 0, 0, 1, 0],
         ... })
         >>> aggregate_temporal_window(df, TemporalWindowBounds(
-        ... True, timedelta(days=7), True, None))
+        ... True, timedelta(days=7), True, None)).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -94,7 +99,7 @@ def aggregate_temporal_window(
         │ 2          ┆ 1989-12-03 15:17:00 ┆ 1989-12-03 15:17:00 ┆ 1989-12-10 15:17:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
         >>> aggregate_temporal_window(df, (
-        ... True, timedelta(days=1), True, timedelta(days=0)))
+        ... True, timedelta(days=1), True, timedelta(days=0))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -109,7 +114,7 @@ def aggregate_temporal_window(
         │ 2          ┆ 1989-12-03 15:17:00 ┆ 1989-12-03 15:17:00 ┆ 1989-12-04 15:17:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
         >>> aggregate_temporal_window(df, (
-        ... True, timedelta(days=1), False, timedelta(days=0)))
+        ... True, timedelta(days=1), False, timedelta(days=0))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -124,7 +129,7 @@ def aggregate_temporal_window(
         │ 2          ┆ 1989-12-03 15:17:00 ┆ 1989-12-03 15:17:00 ┆ 1989-12-04 15:17:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
         >>> aggregate_temporal_window(df, (
-        ... False, timedelta(days=1), False, timedelta(days=0)))
+        ... False, timedelta(days=1), False, timedelta(days=0))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -139,7 +144,7 @@ def aggregate_temporal_window(
         │ 2          ┆ 1989-12-03 15:17:00 ┆ 1989-12-03 15:17:00 ┆ 1989-12-04 15:17:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
         >>> aggregate_temporal_window(df, (
-        ... False, timedelta(days=-1), False, timedelta(days=0)))
+        ... False, timedelta(days=-1), False, timedelta(days=0))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -154,7 +159,7 @@ def aggregate_temporal_window(
         │ 2          ┆ 1989-12-03 15:17:00 ┆ 1989-12-03 15:17:00 ┆ 1989-12-02 15:17:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
         >>> aggregate_temporal_window(df, (
-        ... False, timedelta(hours=12), False, timedelta(hours=12)))
+        ... False, timedelta(hours=12), False, timedelta(hours=12))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -173,7 +178,7 @@ def aggregate_temporal_window(
         >>> # the earliest event in the aggregation window, regardless of whether that is earlier than the
         >>> # timestamp of the row.
         >>> aggregate_temporal_window(df, (
-        ... False, timedelta(days=-1), True, timedelta(days=1)))
+        ... False, timedelta(days=-1), True, timedelta(days=1))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -188,7 +193,7 @@ def aggregate_temporal_window(
         │ 2          ┆ 1989-12-03 15:17:00 ┆ 1989-12-04 15:17:00 ┆ 1989-12-03 15:17:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
         >>> aggregate_temporal_window(df, (
-        ... True, timedelta(days=-1), False, timedelta(days=1)))
+        ... True, timedelta(days=-1), False, timedelta(days=1))).drop("_EVENT_INDEX")
         shape: (6, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -206,7 +211,9 @@ def aggregate_temporal_window(
     if not isinstance(endpoint_expr, TemporalWindowBounds):
         endpoint_expr = TemporalWindowBounds(*endpoint_expr)
 
-    predicate_cols = [c for c in predicates_df.columns if c not in {"subject_id", "timestamp"}]
+    predicate_cols = [
+        c for c in predicates_df.columns if c not in {"subject_id", "timestamp", EVENT_INDEX_COLUMN}
+    ]
 
     return (
         predicates_df.rolling(
@@ -216,6 +223,7 @@ def aggregate_temporal_window(
         )
         .agg(
             *[pl.col(c).sum().cast(PRED_CNT_TYPE).alias(c) for c in predicate_cols],
+            pl.col(EVENT_INDEX_COLUMN).max(),
         )
         .sort(by=["subject_id", "timestamp"])
         .select(
@@ -226,6 +234,7 @@ def aggregate_temporal_window(
                 "timestamp_at_end"
             ),
             *predicate_cols,
+            EVENT_INDEX_COLUMN,
         )
     )
 
@@ -302,11 +311,13 @@ def aggregate_event_bound_window(
         ...         datetime(year=1989, month=12, day=8,  hour=16, minute=22),
         ...         datetime(year=1989, month=12, day=10, hour=3,  minute=7),  # HAS EVENT BOUND
         ...     ],
+        ...     "_EVENT_INDEX": [0, 1, 2, 0, 1, 2, 3, 4],
         ...     "is_A": [1, 0, 1, 1, 1, 1, 0, 0],
         ...     "is_B": [0, 1, 0, 1, 0, 1, 1, 1],
         ...     "is_C": [0, 1, 0, 0, 0, 1, 0, 1],
         ... })
-        >>> aggregate_event_bound_window(df, ToEventWindowBounds(True, "is_C", True, None))
+        >>> aggregate_event_bound_window(df, ToEventWindowBounds(True, "is_C", True, None)).drop(
+        ... "_EVENT_INDEX")
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -322,7 +333,8 @@ def aggregate_event_bound_window(
         │ 2          ┆ 1989-12-08 16:22:00 ┆ 1989-12-08 16:22:00 ┆ 1989-12-10 03:07:00 ┆ 0    ┆ 2    ┆ 1    │
         │ 2          ┆ 1989-12-10 03:07:00 ┆ 1989-12-10 03:07:00 ┆ 1989-12-10 03:07:00 ┆ 0    ┆ 1    ┆ 1    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
-        >>> aggregate_event_bound_window(df, ToEventWindowBounds(True, "is_C", False, None))
+        >>> aggregate_event_bound_window(df, ToEventWindowBounds(True, "is_C", False, None)).drop(
+        ... "_EVENT_INDEX")
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -338,7 +350,8 @@ def aggregate_event_bound_window(
         │ 2          ┆ 1989-12-08 16:22:00 ┆ 1989-12-08 16:22:00 ┆ 1989-12-10 03:07:00 ┆ 0    ┆ 1    ┆ 0    │
         │ 2          ┆ 1989-12-10 03:07:00 ┆ null                ┆ null                ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
-        >>> aggregate_event_bound_window(df, ToEventWindowBounds(False, "is_C", True, None))
+        >>> aggregate_event_bound_window(df, ToEventWindowBounds(False, "is_C", True, None)).drop(
+        ... "_EVENT_INDEX")
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -354,7 +367,8 @@ def aggregate_event_bound_window(
         │ 2          ┆ 1989-12-08 16:22:00 ┆ 1989-12-08 16:22:00 ┆ 1989-12-10 03:07:00 ┆ 0    ┆ 1    ┆ 1    │
         │ 2          ┆ 1989-12-10 03:07:00 ┆ 1989-12-10 03:07:00 ┆ 1989-12-10 03:07:00 ┆ 0    ┆ 0    ┆ 0    │
         └────────────┴─────────────────────┴─────────────────────┴─────────────────────┴──────┴──────┴──────┘
-        >>> aggregate_event_bound_window(df, ToEventWindowBounds(True, "is_C", True, timedelta(days=3)))
+        >>> aggregate_event_bound_window(df, ToEventWindowBounds(
+        ... True, "is_C", True, timedelta(days=3))).drop("_EVENT_INDEX")
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -495,6 +509,7 @@ def boolean_expr_bound_sum(
         ...         datetime(year=1989, month=12, day=8,  hour=16, minute=22),
         ...         datetime(year=1989, month=12, day=10, hour=3,  minute=7),  # HAS EVENT BOUND
         ...     ],
+        ...     "_EVENT_INDEX":  [0, 1, 2, 0, 1, 2, 3, 4],
         ...     "idx":  [0, 1, 2, 3, 4, 5, 6, 7],
         ...     "is_A": [1, 0, 1, 1, 1, 1, 0, 0],
         ...     "is_B": [0, 1, 0, 1, 0, 1, 1, 1],
@@ -675,7 +690,7 @@ def boolean_expr_bound_sum(
         ...     "bound_to_row",
         ...     "both",
         ...     offset = timedelta(days=3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -697,7 +712,7 @@ def boolean_expr_bound_sum(
         ...     "bound_to_row",
         ...     "left",
         ...     offset = timedelta(days=3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -719,7 +734,7 @@ def boolean_expr_bound_sum(
         ...     "bound_to_row",
         ...     "none",
         ...     timedelta(days=-3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -741,7 +756,7 @@ def boolean_expr_bound_sum(
         ...     "bound_to_row",
         ...     "right",
         ...     offset = timedelta(days=-3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -763,7 +778,7 @@ def boolean_expr_bound_sum(
         ...     "row_to_bound",
         ...     "both",
         ...     offset = timedelta(days=3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -785,7 +800,7 @@ def boolean_expr_bound_sum(
         ...     "row_to_bound",
         ...     "left",
         ...     offset = timedelta(days=3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -807,7 +822,7 @@ def boolean_expr_bound_sum(
         ...     "row_to_bound",
         ...     "none",
         ...     offset = timedelta(days=-3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -829,7 +844,7 @@ def boolean_expr_bound_sum(
         ...     "row_to_bound",
         ...     "right",
         ...     offset = timedelta(days=-3),
-        ... ).drop("idx")
+        ... ).drop(["idx", "_EVENT_INDEX"])
         shape: (8, 7)
         ┌────────────┬─────────────────────┬─────────────────────┬─────────────────────┬──────┬──────┬──────┐
         │ subject_id ┆ timestamp           ┆ timestamp_at_start  ┆ timestamp_at_end    ┆ is_A ┆ is_B ┆ is_C │
@@ -891,7 +906,7 @@ def boolean_expr_bound_sum(
             ),
         )
 
-    cols = [c for c in df.columns if c not in {"subject_id", "timestamp"}]
+    cols = [c for c in df.columns if c not in {"subject_id", "timestamp", EVENT_INDEX_COLUMN}]
 
     cumsum_cols = {c: pl.col(c).cum_sum().over("subject_id").alias(f"{c}_cumsum_at_row") for c in cols}
     df = df.with_columns(*cumsum_cols.values())
@@ -1024,4 +1039,5 @@ def boolean_expr_bound_sum(
         st_timestamp_expr.alias("timestamp_at_start"),
         end_timestamp_expr.alias("timestamp_at_end"),
         *(agg_offset_fn(c).cast(PRED_CNT_TYPE, strict=False).fill_null(0).alias(c) for c in cols),
+        EVENT_INDEX_COLUMN,
     )
