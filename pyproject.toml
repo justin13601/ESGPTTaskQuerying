@@ -34,7 +34,7 @@ build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 dev = [
-  "pre-commit", "pytest", "pytest-cov", "pytest-subtests", "rootutils"
+  "pre-commit", "pytest", "pytest-cov", "pytest-subtests", "rootutils", "hypothesis"
 ]
 profiling = ["psutil"]
 
